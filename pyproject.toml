@@ -1,0 +1,55 @@
+[project]
+name = "cliauth"
+version = "0.1.0"
+description = "Unified CLI authentication manager"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.14"
+authors = [
+    { name = "JaeyoungHeo", email = "jay.jaeyoung@gmail.com" },
+]
+maintainers = [
+    { name = "JaeyoungHeo", email = "jay.jaeyoung@gmail.com" },
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "tomli-w>=1.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/8percent/cliauth"
+
+[project.scripts]
+cliauth = "cliauth.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.1",
+    "tox>=4.23",
+    "tox-uv>=1.16",
+    "ruff>=0.9",
+    "pre-commit>=4.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cliauth"]
+
+# Lint Configurations
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider"
+testpaths = [
+    "tests",
+]

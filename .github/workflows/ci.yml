@@ -1,0 +1,64 @@
+name: CI
+
+on: [pull_request]
+
+jobs:
+  package-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+      - name: Checkout Project Package
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Python
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Test
+        run: uv run tox -e py$(echo ${{ matrix.python-version }} | tr -d '.')
+
+  unittest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Project Package
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Install Dependencies
+      run: uv sync --group dev
+
+    - name: Test
+      run: uv run pytest tests/ --cov=src/ --cov-report xml:coverage.xml
+
+    - name: Report Coverage
+      uses: orgoro/coverage@v3.1
+      with:
+        coverageFile: coverage.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Project Package
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Install Dependencies
+      run: uv sync --group dev
+
+    - name: Ruff Check
+      run: uv run ruff check src/ tests/
+
+    - name: Ruff Format Check
+      run: uv run ruff format --check src/ tests/
