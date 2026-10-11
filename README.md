@@ -7,7 +7,7 @@ Unified CLI authentication manager. Configure all your CLI tools in one file, au
 | CLI | Auth Method |
 |-----|-------------|
 | **GitHub CLI** (`gh`) | Token via `gh auth login --with-token` |
-| **AWS CLI** (`aws`) | SSO login trigger per profile |
+| **AWS CLI** (`aws`, v2 required) | One `aws sso login --sso-session` per distinct session of the configured profiles |
 | **Sentry CLI** (`sentry-cli`) | Token written to `~/.sentryclirc` |
 | **Atlassian CLI** (`acli`) | API token via `acli jira auth login` |
 
@@ -63,6 +63,11 @@ site = "your-site.atlassian.net"
 email = "your@email.com"
 api_token = "your-atlassian-api-token"
 ```
+
+`sso_profiles` lists the profiles to keep logged in. cliauth reads each profile's `sso_session`
+from `~/.aws/config` and logs in once per session (profiles that share a session need one
+browser approval). A profile without `sso_session` falls back to `aws sso login --profile`.
+cliauth always runs AWS CLI v2 — a v1 `aws` earlier on PATH (for example a project venv) is skipped.
 
 ## Commands
 
