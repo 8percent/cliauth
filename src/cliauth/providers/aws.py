@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 from functools import lru_cache
 from typing import Any
@@ -14,6 +15,7 @@ AWS_V2_FALLBACKS = (
     "/usr/local/bin/aws",
     "/usr/local/aws-cli/aws",
 )
+SSO_LOGIN_TIMEOUT_SECONDS = 300
 
 
 def aws_candidates() -> list[str]:
@@ -22,7 +24,7 @@ def aws_candidates() -> list[str]:
         for directory in os.environ.get("PATH", "").split(os.pathsep)
         if directory
     ]
-    return from_path + list(AWS_V2_FALLBACKS)
+    return list(dict.fromkeys(from_path + list(AWS_V2_FALLBACKS)))
 
 
 @lru_cache(maxsize=1)
@@ -57,6 +59,9 @@ class AWSProvider(AuthProvider):
 
     def is_installed(self) -> bool:
         return find_aws_v2() is not None
+
+    def missing_binary_message(self) -> str:
+        return "AWS CLI v2 not found (checked PATH and common install paths)"
 
     def _sso_session(self, aws: str, profile: str) -> str | None:
         result = run([aws, "configure", "get", "sso_session", "--profile", profile])
@@ -95,10 +100,18 @@ class AWSProvider(AuthProvider):
         all_ok = True
         for label, command in self._login_targets(aws):
             if dry_run:
-                output.info(f"[{self.name}] Would run: {' '.join(command)}")
+                output.info(f"[{self.name}] Would run: {shlex.join(command)}")
                 continue
             output.info(f"[{self.name}] Logging in to {label} ...")
-            result = run(command, timeout=300)
+            try:
+                result = run(command, timeout=SSO_LOGIN_TIMEOUT_SECONDS)
+            except subprocess.TimeoutExpired:
+                output.error(
+                    f"[{self.name}] {label} timed out waiting for browser approval "
+                    f"({SSO_LOGIN_TIMEOUT_SECONDS}s)"
+                )
+                all_ok = False
+                continue
             if result.success:
                 output.success(f"[{self.name}] {label} authenticated")
             else:

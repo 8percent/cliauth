@@ -75,9 +75,7 @@ def setup(
             continue
 
         if not provider.is_installed():
-            output.warning(
-                f"[{name}] Skipping: {provider.required_binary} not found on PATH"
-            )
+            output.warning(f"[{name}] Skipping: {provider.missing_binary_message()}")
             results.append((name, False))
             continue
 

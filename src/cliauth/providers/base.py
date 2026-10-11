@@ -24,6 +24,9 @@ class AuthProvider(ABC):
     def is_installed(self) -> bool:
         return shutil.which(self.required_binary) is not None
 
+    def missing_binary_message(self) -> str:
+        return f"{self.required_binary} not found on PATH"
+
     @abstractmethod
     def validate_config(self) -> list[str]:
         """Return list of missing/invalid config keys."""
