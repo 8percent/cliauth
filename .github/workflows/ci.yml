@@ -22,6 +22,17 @@ jobs:
       - name: Test
         run: uv run tox -e py$(echo ${{ matrix.python-version }} | tr -d '.')
 
+  package-build-result:
+    name: package-build
+    needs: package-build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check package-build matrix result
+        env:
+          RESULT: ${{ needs.package-build.result }}
+        run: test "$RESULT" = success
+
   unittest:
     runs-on: ubuntu-latest
 
