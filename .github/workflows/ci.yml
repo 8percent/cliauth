@@ -77,3 +77,11 @@ jobs:
 
     - name: Ruff Format Check
       run: uv run ruff format --check src/ tests/
+
+  ci-gate:
+    if: always()
+    needs: [package-build, package-build-result, unittest, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
